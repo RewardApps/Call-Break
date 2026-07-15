@@ -1,0 +1,852 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Call Break GO is a colorful card game featuring online multiplayer, local LAN, bots and solitaire modes." />
+  <meta name="theme-color" content="#94b56d" />
+  <title>Call Break GO — Play, Bid & Win</title>
+  <style>
+    :root {
+      --sky: #a8dce9;
+      --sky-deep: #63b8d5;
+      --grass: #829b65;
+      --grass-dark: #506d3c;
+      --lime: #a7d86b;
+      --lime-dark: #78b649;
+      --coral: #f26870;
+      --pink: #dc6ea2;
+      --blue: #65b9d7;
+      --yellow: #ffc848;
+      --ink: #31303c;
+      --muted: #5e6657;
+      --cream: #fffaf0;
+      --white: #ffffff;
+      --shadow: 0 18px 45px rgba(44, 70, 39, 0.18);
+      --soft-shadow: 0 10px 24px rgba(41, 66, 37, 0.14);
+      --radius-xl: 34px;
+      --radius-lg: 24px;
+      --radius-md: 18px;
+    }
+
+    * { box-sizing: border-box; }
+
+    html { scroll-behavior: smooth; }
+
+    body {
+      margin: 0;
+      color: var(--ink);
+      font-family: "Arial Rounded MT Bold", "Trebuchet MS", system-ui, sans-serif;
+      background:
+        radial-gradient(circle at 20% 4%, rgba(255,255,255,.92) 0 7%, transparent 7.2%),
+        radial-gradient(circle at 29% 5%, rgba(255,255,255,.82) 0 9%, transparent 9.2%),
+        linear-gradient(180deg, #b9e8f1 0 35%, #92aa70 35% 100%);
+      overflow-x: hidden;
+    }
+
+    a { color: inherit; text-decoration: none; }
+    img { max-width: 100%; display: block; }
+    button, a { -webkit-tap-highlight-color: transparent; }
+
+    .page-shell {
+      min-height: 100vh;
+      position: relative;
+      isolation: isolate;
+    }
+
+    .page-shell::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      z-index: -2;
+      background:
+        radial-gradient(circle at 8% 16%, rgba(255,255,255,.55) 0 75px, transparent 76px),
+        radial-gradient(circle at 18% 16%, rgba(255,255,255,.5) 0 105px, transparent 106px),
+        radial-gradient(circle at 82% 14%, rgba(255,255,255,.48) 0 95px, transparent 96px),
+        linear-gradient(160deg, transparent 0 47%, rgba(70,108,50,.16) 47% 53%, transparent 53%);
+      pointer-events: none;
+    }
+
+    .container {
+      width: min(1180px, calc(100% - 36px));
+      margin-inline: auto;
+    }
+
+    .nav-wrap {
+      position: sticky;
+      top: 0;
+      z-index: 30;
+      padding: 14px 0;
+      background: linear-gradient(180deg, rgba(168,220,233,.92), rgba(168,220,233,.68), transparent);
+      backdrop-filter: blur(8px);
+    }
+
+    .navbar {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 24px;
+      padding: 12px 16px 12px 20px;
+      background: rgba(255,255,255,.82);
+      border: 2px solid rgba(255,255,255,.95);
+      border-radius: 999px;
+      box-shadow: var(--soft-shadow);
+    }
+
+    .brand {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 1.15rem;
+      font-weight: 900;
+      letter-spacing: -.04em;
+    }
+
+    .brand-mark {
+      width: 42px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      color: white;
+      font-size: 1.5rem;
+      background: linear-gradient(145deg, #222733, #48515a);
+      border-radius: 14px;
+      box-shadow: inset 0 -5px rgba(0,0,0,.14), 0 5px 12px rgba(49,48,60,.22);
+      transform: rotate(-5deg);
+    }
+
+    .brand span:last-child em { color: var(--lime-dark); font-style: normal; }
+
+    .nav-links {
+      display: flex;
+      align-items: center;
+      gap: 24px;
+      color: #4e594b;
+      font-size: .94rem;
+    }
+
+    .nav-links a { transition: .2s ease; }
+    .nav-links a:hover { color: var(--lime-dark); transform: translateY(-1px); }
+
+    .download-btn, .primary-btn, .secondary-btn {
+      border: 0;
+      cursor: pointer;
+      font: inherit;
+      font-weight: 900;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 10px;
+      transition: transform .2s ease, box-shadow .2s ease, filter .2s ease;
+    }
+
+    .download-btn {
+      padding: 13px 20px;
+      color: white;
+      background: linear-gradient(180deg, #b1df75, #88c151);
+      border-radius: 999px;
+      box-shadow: inset 0 -5px rgba(74,135,42,.22), 0 9px 18px rgba(90,146,52,.24);
+    }
+
+    .download-btn:hover, .primary-btn:hover, .secondary-btn:hover { transform: translateY(-3px); filter: saturate(1.08); }
+
+    .hero {
+      min-height: 760px;
+      display: grid;
+      grid-template-columns: 1.02fr .98fr;
+      align-items: center;
+      gap: 44px;
+      padding: 58px 0 110px;
+      position: relative;
+    }
+
+    .hero::after {
+      content: "";
+      position: absolute;
+      left: 50%;
+      bottom: -1px;
+      width: 130vw;
+      height: 210px;
+      transform: translateX(-50%);
+      background:
+        radial-gradient(ellipse at 30% 100%, #9dc96d 0 42%, transparent 42.5%),
+        radial-gradient(ellipse at 65% 100%, #7fa35f 0 50%, transparent 50.5%);
+      z-index: -1;
+    }
+
+    .eyebrow {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 18px;
+      padding: 9px 14px;
+      border-radius: 999px;
+      color: #536044;
+      background: rgba(255,255,255,.75);
+      border: 2px solid rgba(255,255,255,.9);
+      box-shadow: var(--soft-shadow);
+      font-size: .9rem;
+    }
+
+    .hero h1 {
+      margin: 0;
+      max-width: 690px;
+      font-size: clamp(4rem, 8.6vw, 7.8rem);
+      line-height: .82;
+      letter-spacing: -.075em;
+      text-shadow: 0 7px 0 rgba(255,255,255,.9), 0 14px 24px rgba(47,63,76,.16);
+    }
+
+    .hero h1 .go {
+      display: inline-block;
+      color: var(--lime-dark);
+      margin-left: .05em;
+      text-shadow: 0 7px 0 rgba(255,255,255,.9), 0 14px 24px rgba(88,139,48,.2);
+    }
+
+    .hero-copy p {
+      max-width: 620px;
+      margin: 30px 0 26px;
+      color: #4e5b50;
+      font-family: system-ui, sans-serif;
+      font-size: 1.08rem;
+      line-height: 1.75;
+      font-weight: 650;
+    }
+
+    .hero-actions { display: flex; flex-wrap: wrap; gap: 14px; }
+
+    .primary-btn {
+      padding: 17px 25px;
+      color: white;
+      border-radius: 18px;
+      background: linear-gradient(180deg, #b3df78, #88c251);
+      box-shadow: inset 0 -6px rgba(79,139,44,.22), 0 13px 22px rgba(89,139,52,.24);
+    }
+
+    .secondary-btn {
+      padding: 17px 25px;
+      color: var(--ink);
+      border-radius: 18px;
+      background: rgba(255,255,255,.84);
+      border: 2px solid rgba(255,255,255,.95);
+      box-shadow: var(--soft-shadow);
+    }
+
+    .quick-stats {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-top: 26px;
+    }
+
+    .stat-chip {
+      min-width: 132px;
+      padding: 13px 16px;
+      border-radius: 17px;
+      background: rgba(255,255,255,.72);
+      border: 2px solid rgba(255,255,255,.88);
+      box-shadow: 0 8px 18px rgba(57,81,47,.1);
+    }
+
+    .stat-chip strong { display: block; font-size: 1.05rem; }
+    .stat-chip span { color: #697063; font: 650 .78rem system-ui, sans-serif; }
+
+    .hero-visual {
+      position: relative;
+      display: grid;
+      place-items: center;
+      min-height: 650px;
+    }
+
+    .phone {
+      width: min(405px, 86vw);
+      padding: 12px;
+      border-radius: 44px;
+      background: linear-gradient(145deg, rgba(255,255,255,.98), rgba(227,241,239,.9));
+      border: 3px solid rgba(255,255,255,.95);
+      box-shadow: 0 35px 70px rgba(49,77,38,.26), inset 0 -6px 12px rgba(85,111,87,.1);
+      transform: rotate(2deg);
+      position: relative;
+      z-index: 2;
+    }
+
+    .phone::before {
+      content: "";
+      position: absolute;
+      top: 17px;
+      left: 50%;
+      transform: translateX(-50%);
+      width: 95px;
+      height: 16px;
+      border-radius: 999px;
+      background: #2d3139;
+      z-index: 3;
+      opacity: .9;
+    }
+
+    .phone img { border-radius: 33px; width: 100%; }
+
+    .floating-card {
+      position: absolute;
+      width: 118px;
+      aspect-ratio: .72;
+      display: grid;
+      place-items: center;
+      color: #252d33;
+      font-size: 3.3rem;
+      background: #fff;
+      border: 2px solid #edf0f3;
+      border-radius: 19px;
+      box-shadow: 0 17px 30px rgba(31,54,42,.2);
+      animation: float 4s ease-in-out infinite;
+      z-index: 3;
+    }
+
+    .floating-card small {
+      position: absolute;
+      top: 10px;
+      left: 13px;
+      font-size: 1.25rem;
+    }
+
+    .card-a { right: 0; top: 92px; color: #d92f37; transform: rotate(12deg); }
+    .card-k { left: -12px; bottom: 92px; transform: rotate(-12deg); animation-delay: -1.2s; }
+
+    .coin {
+      position: absolute;
+      display: grid;
+      place-items: center;
+      width: 76px;
+      aspect-ratio: 1;
+      border-radius: 50%;
+      color: #cc8a00;
+      font-size: 2rem;
+      background: radial-gradient(circle at 35% 30%, #fff18b, #ffbf27 48%, #e59b00 78%);
+      border: 7px solid #ffd85b;
+      box-shadow: 0 13px 20px rgba(132,92,0,.2), inset 0 0 0 4px rgba(255,255,255,.22);
+      animation: float 3.6s ease-in-out infinite;
+    }
+
+    .coin-one { top: 38px; left: 72px; }
+    .coin-two { right: 42px; bottom: 60px; width: 54px; animation-delay: -1.7s; }
+
+    @keyframes float {
+      0%,100% { translate: 0 0; }
+      50% { translate: 0 -16px; }
+    }
+
+    section { padding: 92px 0; }
+
+    .section-heading {
+      text-align: center;
+      max-width: 780px;
+      margin: 0 auto 48px;
+    }
+
+    .section-heading .tag {
+      display: inline-block;
+      padding: 8px 14px;
+      border-radius: 999px;
+      color: var(--grass-dark);
+      background: #eef8e0;
+      border: 2px solid rgba(121,170,74,.16);
+      font-size: .83rem;
+      letter-spacing: .06em;
+      text-transform: uppercase;
+    }
+
+    .section-heading h2 {
+      margin: 14px 0 12px;
+      font-size: clamp(2.35rem, 5vw, 4.2rem);
+      line-height: 1;
+      letter-spacing: -.055em;
+    }
+
+    .section-heading p {
+      margin: 0;
+      color: #667064;
+      font: 650 1rem/1.7 system-ui, sans-serif;
+    }
+
+    .features-section {
+      background: linear-gradient(180deg, #f8fcf5, #f4f8ef);
+      border-radius: 60px 60px 0 0;
+      position: relative;
+      z-index: 3;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(4, 1fr);
+      gap: 18px;
+    }
+
+    .feature-card {
+      min-height: 270px;
+      padding: 26px;
+      border-radius: var(--radius-lg);
+      color: white;
+      box-shadow: var(--soft-shadow);
+      overflow: hidden;
+      position: relative;
+      transition: transform .25s ease, box-shadow .25s ease;
+    }
+
+    .feature-card:hover { transform: translateY(-8px); box-shadow: var(--shadow); }
+    .feature-card:nth-child(1) { background: linear-gradient(150deg, #f36d73, #e85962); }
+    .feature-card:nth-child(2) { background: linear-gradient(150deg, #68bddc, #4ca7cd); }
+    .feature-card:nth-child(3) { background: linear-gradient(150deg, #9ed566, #7dbd48); }
+    .feature-card:nth-child(4) { background: linear-gradient(150deg, #dd78aa, #c95791); }
+
+    .feature-icon {
+      width: 74px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin-bottom: 28px;
+      border-radius: 23px;
+      background: rgba(255,255,255,.18);
+      border: 2px solid rgba(255,255,255,.22);
+      font-size: 2.2rem;
+      backdrop-filter: blur(6px);
+    }
+
+    .feature-card h3 { margin: 0 0 10px; font-size: 1.42rem; }
+    .feature-card p { margin: 0; color: rgba(255,255,255,.92); font: 600 .94rem/1.55 system-ui, sans-serif; }
+
+    .feature-card::after {
+      content: "";
+      position: absolute;
+      width: 150px;
+      aspect-ratio: 1;
+      right: -48px;
+      bottom: -58px;
+      border-radius: 50%;
+      background: rgba(255,255,255,.09);
+    }
+
+    .showcase {
+      background: #f4f8ef;
+      padding-top: 50px;
+    }
+
+    .showcase-row {
+      display: grid;
+      grid-template-columns: .95fr 1.05fr;
+      gap: 70px;
+      align-items: center;
+      margin-bottom: 110px;
+    }
+
+    .showcase-row.reverse { grid-template-columns: 1.05fr .95fr; }
+    .showcase-row.reverse .showcase-copy { order: 2; }
+
+    .showcase-copy h3 {
+      margin: 0 0 18px;
+      font-size: clamp(2.2rem, 4vw, 3.8rem);
+      line-height: 1.02;
+      letter-spacing: -.05em;
+    }
+
+    .showcase-copy p {
+      color: #667064;
+      font: 650 1rem/1.75 system-ui, sans-serif;
+      margin-bottom: 24px;
+    }
+
+    .check-list { display: grid; gap: 13px; }
+    .check-item { display: flex; align-items: center; gap: 12px; font: 750 .97rem system-ui, sans-serif; color: #4e5d4d; }
+    .check-item::before {
+      content: "✓";
+      flex: 0 0 32px;
+      width: 32px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      color: white;
+      background: var(--lime-dark);
+      border-radius: 50%;
+      box-shadow: inset 0 -4px rgba(55,109,27,.18);
+    }
+
+    .screen-frame {
+      max-width: 390px;
+      margin-inline: auto;
+      padding: 11px;
+      background: white;
+      border-radius: 38px;
+      box-shadow: var(--shadow);
+      border: 3px solid rgba(255,255,255,.85);
+      position: relative;
+    }
+
+    .screen-frame::after {
+      content: "";
+      position: absolute;
+      inset: auto 18% -22px;
+      height: 28px;
+      background: rgba(62,94,48,.18);
+      filter: blur(18px);
+      border-radius: 50%;
+      z-index: -1;
+    }
+
+    .screen-frame img { border-radius: 29px; width: 100%; }
+
+    .gameplay-frame {
+      max-width: 680px;
+      border-radius: 30px;
+    }
+
+    .gameplay-frame img { border-radius: 21px; }
+
+    .how-section {
+      background: linear-gradient(160deg, #77935d, #526e43);
+      color: white;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .how-section::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background:
+        radial-gradient(circle at 6% 10%, rgba(255,255,255,.08) 0 120px, transparent 122px),
+        radial-gradient(circle at 90% 90%, rgba(255,255,255,.07) 0 160px, transparent 162px);
+    }
+
+    .how-section .section-heading p { color: rgba(255,255,255,.78); }
+
+    .steps {
+      position: relative;
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      gap: 20px;
+    }
+
+    .step {
+      padding: 28px;
+      border-radius: var(--radius-lg);
+      background: rgba(255,255,255,.1);
+      border: 2px solid rgba(255,255,255,.12);
+      backdrop-filter: blur(8px);
+    }
+
+    .step-number {
+      width: 52px;
+      aspect-ratio: 1;
+      display: grid;
+      place-items: center;
+      margin-bottom: 20px;
+      color: var(--grass-dark);
+      background: var(--yellow);
+      border-radius: 17px;
+      box-shadow: inset 0 -5px rgba(188,123,0,.18);
+      font-size: 1.35rem;
+    }
+
+    .step h3 { margin: 0 0 8px; font-size: 1.35rem; }
+    .step p { margin: 0; color: rgba(255,255,255,.78); font: 600 .93rem/1.6 system-ui, sans-serif; }
+
+    .gallery-section { background: #f4f8ef; }
+
+    .gallery-grid {
+      display: grid;
+      grid-template-columns: repeat(3, 1fr);
+      align-items: end;
+      gap: 22px;
+    }
+
+    .gallery-item {
+      padding: 10px;
+      background: white;
+      border-radius: 30px;
+      box-shadow: var(--soft-shadow);
+      transition: .25s ease;
+    }
+
+    .gallery-item:hover { transform: translateY(-8px) rotate(-1deg); box-shadow: var(--shadow); }
+    .gallery-item:nth-child(2) { transform: translateY(-28px); }
+    .gallery-item:nth-child(2):hover { transform: translateY(-36px) rotate(1deg); }
+    .gallery-item img { border-radius: 22px; }
+
+    .cta-section {
+      padding: 110px 0;
+      background: linear-gradient(180deg, #f4f8ef 0 22%, #8aa56b 22% 100%);
+    }
+
+    .cta-card {
+      display: grid;
+      grid-template-columns: 1fr auto;
+      align-items: center;
+      gap: 32px;
+      padding: 46px 54px;
+      color: white;
+      border-radius: 34px;
+      background:
+        radial-gradient(circle at 88% 20%, rgba(255,255,255,.13) 0 110px, transparent 112px),
+        linear-gradient(135deg, #ef6c73, #e15a78 48%, #ca5596);
+      box-shadow: 0 28px 55px rgba(71,70,52,.25);
+      overflow: hidden;
+      position: relative;
+    }
+
+    .cta-card h2 { margin: 0 0 12px; font-size: clamp(2.2rem, 5vw, 4.3rem); line-height: .98; letter-spacing: -.055em; }
+    .cta-card p { margin: 0; max-width: 650px; font: 650 1rem/1.65 system-ui, sans-serif; color: rgba(255,255,255,.88); }
+    .cta-card .primary-btn { background: white; color: #d64d70; box-shadow: 0 14px 25px rgba(119,36,68,.2); white-space: nowrap; }
+
+    footer {
+      color: rgba(255,255,255,.82);
+      background: #4d673e;
+      padding: 34px 0;
+      font: 600 .9rem system-ui, sans-serif;
+    }
+
+    .footer-inner { display: flex; justify-content: space-between; align-items: center; gap: 20px; flex-wrap: wrap; }
+    .footer-links { display: flex; gap: 20px; }
+    .footer-links a:hover { color: white; }
+
+    @media (max-width: 980px) {
+      .nav-links { display: none; }
+      .hero { grid-template-columns: 1fr; text-align: center; padding-top: 35px; }
+      .hero-copy p { margin-inline: auto; }
+      .hero-actions, .quick-stats { justify-content: center; }
+      .hero-visual { min-height: 600px; }
+      .feature-grid { grid-template-columns: repeat(2, 1fr); }
+      .showcase-row, .showcase-row.reverse { grid-template-columns: 1fr; gap: 42px; }
+      .showcase-row.reverse .showcase-copy { order: 0; }
+      .showcase-copy { text-align: center; }
+      .check-list { max-width: 520px; margin-inline: auto; text-align: left; }
+      .steps { grid-template-columns: 1fr; }
+      .cta-card { grid-template-columns: 1fr; text-align: center; justify-items: center; }
+    }
+
+    @media (max-width: 680px) {
+      .container { width: min(100% - 24px, 1180px); }
+      .nav-wrap { padding-top: 8px; }
+      .navbar { border-radius: 24px; }
+      .download-btn { padding: 12px 14px; font-size: .82rem; }
+      .hero { min-height: auto; padding-bottom: 80px; }
+      .hero h1 { font-size: clamp(3.4rem, 18vw, 5.2rem); }
+      .hero-copy p { font-size: .98rem; }
+      .hero-visual { min-height: 520px; }
+      .phone { width: min(330px, 84vw); }
+      .floating-card { width: 87px; font-size: 2.4rem; }
+      .card-a { right: -10px; }
+      .card-k { left: -10px; bottom: 75px; }
+      .coin-one { left: 8px; }
+      section { padding: 70px 0; }
+      .features-section { border-radius: 38px 38px 0 0; }
+      .feature-grid { grid-template-columns: 1fr; }
+      .showcase-row { margin-bottom: 76px; }
+      .gallery-grid { grid-template-columns: 1fr; max-width: 390px; margin-inline: auto; }
+      .gallery-item:nth-child(2) { transform: none; }
+      .gallery-item:nth-child(2):hover { transform: translateY(-8px); }
+      .cta-section { padding: 72px 0; }
+      .cta-card { padding: 34px 24px; }
+      .footer-inner { justify-content: center; text-align: center; }
+    }
+  </style>
+</head>
+<body>
+  <div class="page-shell">
+    <header class="nav-wrap">
+      <div class="container">
+        <nav class="navbar" aria-label="Main navigation">
+          <a class="brand" href="#top" aria-label="Call Break GO home">
+            <span class="brand-mark">♠</span>
+            <span>Call Break <em>GO</em></span>
+          </a>
+          <div class="nav-links">
+            <a href="#features">Features</a>
+            <a href="#modes">Game modes</a>
+            <a href="#how">How to play</a>
+            <a href="#screens">Screens</a>
+          </div>
+          <a class="download-btn" href="#download">▶ Get the game</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top">
+      <section class="hero container">
+        <div class="hero-copy">
+          <span class="eyebrow">♣ Classic card fun, made for everyone</span>
+          <h1>Call Break <span class="go">GO</span></h1>
+          <p>
+            Bid smart, play your best cards and win every round. Challenge real players online,
+            connect with nearby friends through Local LAN, practice against bots or relax with Solitaire.
+          </p>
+          <div class="hero-actions">
+            <a class="primary-btn" href="#download">▶ Play Call Break GO</a>
+            <a class="secondary-btn" href="#modes">Explore game modes ↓</a>
+          </div>
+          <div class="quick-stats" aria-label="Game highlights">
+            <div class="stat-chip"><strong>4 modes</strong><span>Online, LAN, bots & solitaire</span></div>
+            <div class="stat-chip"><strong>Fast rounds</strong><span>Easy to start and play</span></div>
+            <div class="stat-chip"><strong>Rewards</strong><span>Coins, bonuses and prizes</span></div>
+          </div>
+        </div>
+
+        <div class="hero-visual" aria-label="Call Break GO home screen preview">
+          <span class="coin coin-one">★</span>
+          <span class="coin coin-two">★</span>
+          <div class="floating-card card-a"><small>A♦</small>♦</div>
+          <div class="floating-card card-k"><small>K♠</small>♠</div>
+          <div class="phone">
+            <img src="assets/home-screen.jpg" alt="Call Break GO home screen showing game modes" />
+          </div>
+        </div>
+      </section>
+
+      <section class="features-section" id="features">
+        <div class="container">
+          <div class="section-heading">
+            <span class="tag">Why players love it</span>
+            <h2>Everything you need for a great card match</h2>
+            <p>A friendly interface, flexible play options and useful progress tools—all inside one colorful game.</p>
+          </div>
+
+          <div class="feature-grid">
+            <article class="feature-card">
+              <div class="feature-icon">🌍</div>
+              <h3>Online Multiplayer</h3>
+              <p>Create a private room or join public players and enjoy competitive Call Break matches over the internet.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">📶</div>
+              <h3>Local LAN</h3>
+              <p>Play nearby using the same Wi-Fi network or hotspot. Perfect for friends in the same room.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">🤖</div>
+              <h3>Smart Bots</h3>
+              <p>Practice your bidding and card strategy at your own pace against computer-controlled opponents.</p>
+            </article>
+            <article class="feature-card">
+              <div class="feature-icon">♥</div>
+              <h3>Solitaire Mode</h3>
+              <p>Switch to a calm single-player card experience whenever you want a relaxing break.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="showcase" id="modes">
+        <div class="container">
+          <div class="showcase-row">
+            <div class="showcase-copy">
+              <span class="eyebrow">Play together</span>
+              <h3>Challenge friends nearby or players online</h3>
+              <p>
+                Choose Local LAN for fast matches on the same Wi-Fi or select Online Multiplayer to create rooms,
+                join public games and compete from anywhere.
+              </p>
+              <div class="check-list">
+                <div class="check-item">Private and public multiplayer rooms</div>
+                <div class="check-item">No internet server needed for LAN matches</div>
+                <div class="check-item">Simple one-tap mode selection</div>
+              </div>
+            </div>
+            <div class="screen-frame">
+              <img src="assets/multiplayer-screen.jpg" alt="Multiplayer screen with Local LAN and Online Multiplayer options" />
+            </div>
+          </div>
+
+          <div class="showcase-row reverse">
+            <div class="showcase-copy">
+              <span class="eyebrow">Play your hand</span>
+              <h3>Clear gameplay built for quick decisions</h3>
+              <p>
+                Follow bids, check player progress and choose cards from a clean table layout. The interface keeps the
+                important information visible while leaving plenty of room for the match.
+              </p>
+              <div class="check-list">
+                <div class="check-item">Easy-to-read cards and player bids</div>
+                <div class="check-item">Round indicators and live score information</div>
+                <div class="check-item">Fast access to cards and statistics</div>
+              </div>
+            </div>
+            <div class="screen-frame gameplay-frame">
+              <img src="assets/gameplay-screen.jpg" alt="Call Break GO gameplay screen with four players and a hand of cards" />
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section class="how-section" id="how">
+        <div class="container">
+          <div class="section-heading">
+            <span class="tag">How it works</span>
+            <h2>Bid. Play. Win.</h2>
+            <p>Learn the flow in seconds and improve your strategy with every match.</p>
+          </div>
+          <div class="steps">
+            <article class="step">
+              <div class="step-number">1</div>
+              <h3>Choose a mode</h3>
+              <p>Start an online match, connect through LAN, play against bots or open Solitaire.</p>
+            </article>
+            <article class="step">
+              <div class="step-number">2</div>
+              <h3>Make your bid</h3>
+              <p>Estimate how many hands you can win, then play carefully to reach your target.</p>
+            </article>
+            <article class="step">
+              <div class="step-number">3</div>
+              <h3>Climb the scores</h3>
+              <p>Track wins, best scores and match history as you become a stronger player.</p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="gallery-section" id="screens">
+        <div class="container">
+          <div class="section-heading">
+            <span class="tag">Inside the game</span>
+            <h2>Friendly, colorful and easy to understand</h2>
+            <p>The playful sky-and-field theme makes every screen feel connected while clear cards keep actions easy to find.</p>
+          </div>
+          <div class="gallery-grid">
+            <figure class="gallery-item">
+              <img src="assets/home-screen.jpg" alt="Game home screen" />
+            </figure>
+            <figure class="gallery-item">
+              <img src="assets/profile-screen.jpg" alt="Player profile and statistics screen" />
+            </figure>
+            <figure class="gallery-item">
+              <img src="assets/multiplayer-screen.jpg" alt="Multiplayer choice screen" />
+            </figure>
+          </div>
+        </div>
+      </section>
+
+      <section class="cta-section" id="download">
+        <div class="container">
+          <div class="cta-card">
+            <div>
+              <h2>Ready to play Call Break GO?</h2>
+              <p>Gather your friends, sharpen your bidding strategy and enjoy classic card action online or offline.</p>
+            </div>
+            <a class="primary-btn" href="#" aria-label="Download Call Break GO">▶ Download now</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer>
+      <div class="container footer-inner">
+        <span>© 2026 Call Break GO. All rights reserved.</span>
+        <div class="footer-links">
+          <a href="#">Privacy Policy</a>
+          <a href="#">Support</a>
+          <a href="#features">Game Features</a>
+        </div>
+      </div>
+    </footer>
+  </div>
+</body>
+</html>
